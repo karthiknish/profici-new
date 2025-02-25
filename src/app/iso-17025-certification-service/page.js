@@ -16,7 +16,7 @@ import {
   Beaker,
 } from "lucide-react";
 import Link from "next/link";
-
+import React from "react";
 export default function ISO17025CertificationService() {
   const benefits = [
     {
