@@ -127,9 +127,7 @@ export default function Hero() {
                   size="lg"
                   className="border-gray-300 hover:bg-gray-50"
                 >
-                  <Link href="/services/certification-services">
-                    Our Services
-                  </Link>
+                  <Link href="/services/">Our Services</Link>
                 </Button>
               </motion.div>
             </div>
