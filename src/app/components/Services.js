@@ -50,7 +50,7 @@ export default function Services() {
     {
       title: "Strategic Growth Planning",
       description:
-        "Develop and implement effective strategies to scale your business, optimize operations, and achieve sustainable growth.",
+        "Develop and implement effective strategies to scale your business, optimise operations, and achieve sustainable growth.",
       icon: <TrendingUp className="h-6 w-6 text-gray-600" />,
       link: "/services/strategic-growth",
     },
@@ -102,14 +102,14 @@ export default function Services() {
     {
       title: "SEO Management",
       description:
-        "Search engine optimization services that improve your website's visibility in search results and drive organic traffic growth.",
+        "Search engine optimisation services that improve your website's visibility in search results and drive organic traffic growth.",
       icon: <TrendingUp className="h-6 w-6 text-black" />,
       link: "/services/seo-management",
     },
     {
       title: "PPC Management",
       description:
-        "Strategic pay-per-click advertising campaigns that maximize ROI and deliver targeted traffic to your website.",
+        "Strategic pay-per-click advertising campaigns that maximise ROI and deliver targeted traffic to your website.",
       icon: <DollarSign className="h-6 w-6 text-black" />,
       link: "/services/ppc-management",
     },
