@@ -5,13 +5,17 @@ import { motion } from "framer-motion";
 import { submitToGravityForms } from "@/lib/gravityForms";
 
 export default function ContactPage() {
+  // Initialize form data with the exact field IDs from the Gravity Forms API
   const [formData, setFormData] = useState({
-    input_1: "", // name
-    input_2: "", // email
-    input_3: "", // company
-    input_4: "", // phone
-    input_5: "", // message
-    input_6: false, // consent
+    // Name field components
+    12.3: "", // First name (required)
+    // Other required fields
+    4: "", // Email (required)
+    7: "", // Company (required)
+    9: "", // Phone (required)
+    11: "", // Message (optional)
+    14.1: "", // Consent checkbox - use empty string initially
+    form_id: 14, // explicitly set form ID to 14
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,25 +27,32 @@ export default function ContactPage() {
     setSubmitStatus({ type: "", message: "" });
 
     try {
+      console.log("Submitting form data:", formData);
+
+      // Submit the form data
       const result = await submitToGravityForms(formData);
 
       if (!result.success) {
+        console.error("Form submission failed:", result);
         throw new Error(result.error || "Failed to submit form");
       }
 
       setSubmitStatus({
         type: "success",
-        message: "Thank you for your message. We will be in touch shortly.",
+        message:
+          result.confirmationMessage ||
+          "Thank you for your message. We will be in touch shortly.",
       });
 
       // Reset form
       setFormData({
-        input_1: "",
-        input_2: "",
-        input_3: "",
-        input_4: "",
-        input_5: "",
-        input_6: false,
+        12.3: "", // First name
+        4: "", // Email
+        7: "", // Company
+        9: "", // Phone
+        11: "", // Message
+        14.1: "", // Consent
+        form_id: 14,
       });
     } catch (error) {
       console.error("Form submission error:", error);
@@ -58,7 +69,7 @@ export default function ContactPage() {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? (checked ? "1" : "") : value,
     }));
   };
 
@@ -82,95 +93,99 @@ export default function ContactPage() {
           className="max-w-xl mx-auto mb-24"
         >
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name Field */}
             <div>
               <label
-                htmlFor="input_1"
+                htmlFor="12.3"
                 className="block text-sm font-medium text-black"
               >
                 Name *
               </label>
               <input
                 type="text"
-                name="input_1"
-                id="input_1"
+                name="12.3"
+                id="12.3"
                 required
-                value={formData.input_1}
+                value={formData["12.3"]}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-[#6A6A6A] shadow-sm focus:border-black focus:ring-black bg-white text-black"
+                placeholder="First Name"
+                autoComplete="given-name"
               />
             </div>
 
             {/* Email Field */}
             <div>
               <label
-                htmlFor="input_2"
+                htmlFor="4"
                 className="block text-sm font-medium text-black"
               >
                 Email *
               </label>
               <input
                 type="email"
-                name="input_2"
-                id="input_2"
+                name="4"
+                id="4"
                 required
-                value={formData.input_2}
+                value={formData["4"]}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-[#6A6A6A] shadow-sm focus:border-black focus:ring-black bg-white text-black"
+                autoComplete="email"
               />
             </div>
 
             {/* Company Field */}
             <div>
               <label
-                htmlFor="input_3"
+                htmlFor="7"
                 className="block text-sm font-medium text-black"
               >
-                Company
+                Company *
               </label>
               <input
                 type="text"
-                name="input_3"
-                id="input_3"
-                value={formData.input_3}
+                name="7"
+                id="7"
+                required
+                value={formData["7"]}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-[#6A6A6A] shadow-sm focus:border-black focus:ring-black bg-white text-black"
+                autoComplete="organization"
               />
             </div>
 
             {/* Phone Field */}
             <div>
               <label
-                htmlFor="input_4"
+                htmlFor="9"
                 className="block text-sm font-medium text-black"
               >
                 Phone *
               </label>
               <input
                 type="tel"
-                name="input_4"
-                id="input_4"
+                name="9"
+                id="9"
                 required
-                value={formData.input_4}
+                value={formData["9"]}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-[#6A6A6A] shadow-sm focus:border-black focus:ring-black bg-white text-black"
+                autoComplete="tel"
               />
             </div>
 
             {/* Message Field */}
             <div>
               <label
-                htmlFor="input_5"
+                htmlFor="11"
                 className="block text-sm font-medium text-black"
               >
-                Your Message *
+                Your Message (optional)
               </label>
               <textarea
-                name="input_5"
-                id="input_5"
-                required
+                name="11"
+                id="11"
                 rows={4}
-                value={formData.input_5}
+                value={formData["11"]}
                 onChange={handleChange}
                 className="mt-1 block w-full rounded-md border-[#6A6A6A] shadow-sm focus:border-black focus:ring-black bg-white text-black"
               />
@@ -181,19 +196,23 @@ export default function ContactPage() {
               <div className="flex items-center h-5">
                 <input
                   type="checkbox"
-                  name="input_6"
-                  id="input_6"
+                  name="14.1"
+                  id="14.1"
                   required
-                  checked={formData.input_6}
+                  checked={formData["14.1"] === "1"}
                   onChange={handleChange}
                   className="h-4 w-4 rounded border-[#6A6A6A] text-black focus:ring-black"
                 />
               </div>
               <div className="ml-3 text-sm">
-                <label htmlFor="input_6" className="font-medium text-[#6A6A6A]">
-                  I consent to having this website store my information for
-                  future contact *
-                </label>
+                <label
+                  htmlFor="14.1"
+                  className="font-medium text-[#6A6A6A]"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      " I agree to the storage and processing of my personal data in accordance with Profici's <a href='https://staging.profici.co.uk/proficinew/privacy-policy/' class='underline'>Privacy Policy</a>. *",
+                  }}
+                />
               </div>
             </div>
 
@@ -217,7 +236,7 @@ export default function ContactPage() {
                 disabled={isSubmitting}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-black/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50"
               >
-                {isSubmitting ? "Sending..." : "Send Message"}
+                {isSubmitting ? "Sending..." : "Submit"}
               </button>
             </div>
           </form>

@@ -10,40 +10,63 @@ export async function submitToGravityForms(formData) {
     // Get environment variables with fallbacks
     const WORDPRESS_URL =
       process.env.NEXT_PUBLIC_WORDPRESS_API_URL || "https://profici.co.uk";
-    const GF_CONSUMER_KEY = process.env.NEXT_PUBLIC_GF_CONSUMER_KEY;
-    const GF_CONSUMER_SECRET = process.env.NEXT_PUBLIC_GF_CONSUMER_SECRET;
-    const GRAVITY_FORM_ID = 14; // Updated form ID
+    const GRAVITY_FORM_ID = formData.form_id || 14; // Use form ID from formData or default to 14
 
-    // Check if API credentials are available
-    if (!GF_CONSUMER_KEY || !GF_CONSUMER_SECRET) {
-      console.error("Gravity Forms API credentials are missing");
-      return {
-        success: false,
-        message: "API credentials are not configured",
-        error: "credentials_missing",
-      };
-    }
-
-    // Construct the endpoint URL
-    const endpoint = `${WORDPRESS_URL}/wp-json/gf/v2/forms/${GRAVITY_FORM_ID}/submissions`;
+    // Construct the endpoint URL for the new API
+    const endpoint = `${WORDPRESS_URL}/wp-json/weboforms/v1/proficinew`;
     console.log(`Submitting to endpoint: ${endpoint}`);
-    console.log("Form data being submitted:", formData);
 
-    // Create Basic Auth header
-    const authHeader =
-      "Basic " +
-      Buffer.from(`${GF_CONSUMER_KEY}:${GF_CONSUMER_SECRET}`).toString(
-        "base64"
-      );
+    // Format the data according to the required API format
+    const formattedData = {
+      form_id: GRAVITY_FORM_ID,
+      form_data: {},
+    };
+
+    // Convert the flat formData to the required nested structure
+    Object.keys(formData).forEach((key) => {
+      // Skip the form_id as it's already included at the top level
+      if (key === "form_id") return;
+
+      // Determine field type based on key
+      let fieldType = "text";
+      let fieldName = "";
+
+      if (key === "12.3") {
+        fieldType = "name";
+        fieldName = "Name (First)";
+      } else if (key === "4") {
+        fieldType = "email";
+        fieldName = "Email";
+      } else if (key === "7") {
+        fieldType = "post_custom_field";
+        fieldName = "Company";
+      } else if (key === "9") {
+        fieldType = "phone";
+        fieldName = "Phone";
+      } else if (key === "11") {
+        fieldType = "post_custom_field";
+        fieldName = "Your message (optional)";
+      } else if (key === "14.1") {
+        fieldType = "consent";
+        fieldName = " (Consent)";
+      }
+
+      formattedData.form_data[key] = {
+        field_name: fieldName,
+        field_value: formData[key],
+        field_type: fieldType,
+      };
+    });
+    
+    console.log("Formatted data being submitted:", formattedData);
 
     // Make the request to the Gravity Forms API
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: authHeader,
       },
-      body: JSON.stringify({ input_values: formData }),
+      body: JSON.stringify(formattedData),
       // Add timeout to prevent hanging requests
       signal: AbortSignal.timeout(15000), // 15 second timeout
     });
