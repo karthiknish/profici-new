@@ -29,8 +29,8 @@ export default function ContactPage() {
     try {
       console.log("Submitting form data:", formData);
 
-      // Submit the form data
-      const result = await submitToGravityForms(formData);
+      // Submit the form data with the 'contact' form type
+      const result = await submitToGravityForms(formData, "contact");
 
       if (!result.success) {
         console.error("Form submission failed:", result);

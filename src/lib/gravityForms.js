@@ -1,24 +1,37 @@
 /**
  * Submits form data to Gravity Forms
  * @param {Object} formData - The form data to submit
+ * @param {string} formType - The type of form ('contact' or 'questionnaire')
  * @returns {Promise<Object>} - The result of the submission
  */
-export async function submitToGravityForms(formData) {
+export async function submitToGravityForms(formData, formType = "contact") {
   try {
-    console.log("Starting Gravity Forms submission process");
+    console.log(
+      `Starting Gravity Forms submission process for ${formType} form`
+    );
 
     // Get environment variables with fallbacks
     const WORDPRESS_URL =
       process.env.NEXT_PUBLIC_WORDPRESS_API_URL || "https://profici.co.uk";
-    const GRAVITY_FORM_ID = formData.form_id || 14; // Use form ID from formData or default to 14
 
-    // Construct the endpoint URL for the new API
-    const endpoint = `${WORDPRESS_URL}/wp-json/weboforms/v1/proficinew`;
+    // Determine endpoint and form ID based on form type
+    let endpoint;
+    let formId;
+
+    if (formType === "questionnaire") {
+      endpoint = `${WORDPRESS_URL}/wp-json/weboforms/v1/proficigro`;
+      formId = formData.form_id || 13;
+    } else {
+      // Default to contact form
+      endpoint = `${WORDPRESS_URL}/wp-json/weboforms/v1/proficinew`;
+      formId = formData.form_id || 14;
+    }
+
     console.log(`Submitting to endpoint: ${endpoint}`);
 
     // Format the data according to the required API format
     const formattedData = {
-      form_id: GRAVITY_FORM_ID,
+      form_id: formId,
       form_data: {},
     };
 
@@ -27,28 +40,65 @@ export async function submitToGravityForms(formData) {
       // Skip the form_id as it's already included at the top level
       if (key === "form_id") return;
 
-      // Determine field type based on key
+      // Determine field type and name based on form type and key
       let fieldType = "text";
       let fieldName = "";
 
-      if (key === "12.3") {
-        fieldType = "name";
-        fieldName = "Name (First)";
-      } else if (key === "4") {
-        fieldType = "email";
-        fieldName = "Email";
-      } else if (key === "7") {
-        fieldType = "post_custom_field";
-        fieldName = "Company";
-      } else if (key === "9") {
-        fieldType = "phone";
-        fieldName = "Phone";
-      } else if (key === "11") {
-        fieldType = "post_custom_field";
-        fieldName = "Your message (optional)";
-      } else if (key === "14.1") {
-        fieldType = "consent";
-        fieldName = " (Consent)";
+      if (formType === "questionnaire") {
+        // Questionnaire form fields
+        if (key === "17.3") {
+          fieldType = "name";
+          fieldName = "Name (First)";
+        } else if (key === "17.2") {
+          fieldType = "name";
+          fieldName = "Name (Prefix)";
+        } else if (key === "17.4") {
+          fieldType = "name";
+          fieldName = "Name (Middle)";
+        } else if (key === "17.6") {
+          fieldType = "name";
+          fieldName = "Name (Last)";
+        } else if (key === "17.8") {
+          fieldType = "name";
+          fieldName = "Name (Suffix)";
+        } else if (key === "18") {
+          fieldType = "email";
+          fieldName = "Email";
+        } else if (key === "19") {
+          fieldType = "phone";
+          fieldName = "Phone";
+        } else if (key === "26") {
+          fieldType = "text";
+          fieldName = "Company/Website";
+        } else if (key === "5") {
+          fieldType = "radio";
+          fieldName = "Annual Revenue";
+        } else if (key === "8") {
+          fieldType = "radio";
+          fieldName =
+            "How much profit did your business earn over the past 12 months?";
+        }
+      } else {
+        // Contact form fields
+        if (key === "12.3") {
+          fieldType = "name";
+          fieldName = "Name (First)";
+        } else if (key === "4") {
+          fieldType = "email";
+          fieldName = "Email";
+        } else if (key === "7") {
+          fieldType = "post_custom_field";
+          fieldName = "Company";
+        } else if (key === "9") {
+          fieldType = "phone";
+          fieldName = "Phone";
+        } else if (key === "11") {
+          fieldType = "post_custom_field";
+          fieldName = "Your message (optional)";
+        } else if (key === "14.1") {
+          fieldType = "consent";
+          fieldName = " (Consent)";
+        }
       }
 
       formattedData.form_data[key] = {
@@ -57,7 +107,7 @@ export async function submitToGravityForms(formData) {
         field_type: fieldType,
       };
     });
-    
+
     console.log("Formatted data being submitted:", formattedData);
 
     // Make the request to the Gravity Forms API

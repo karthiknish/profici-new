@@ -192,30 +192,30 @@ export default function QuestionnairePage() {
       if (DEBUG_MODE) {
         console.log("Environment variables:", {
           wordpressUrl: process.env.NEXT_PUBLIC_WORDPRESS_API_URL || "Not set",
-          hasConsumerKey: !!process.env.NEXT_PUBLIC_GF_CONSUMER_KEY,
-          hasConsumerSecret: !!process.env.NEXT_PUBLIC_GF_CONSUMER_SECRET,
         });
       }
 
-      const { submitToGravityForms } = await import("@/lib/gravityForms");
-
-      // Prepare form data for submission
+      // Prepare form data for submission with the new field IDs
       const submissionData = {
-        input_1: formData.firstName, // First Name
-        input_2: formData.lastName, // Last Name
-        input_3: formData.email, // Email
-        input_4: formData.phone, // Phone
-        input_5: formData.website || "Not provided", // Website
-        input_6: formData.businessType, // Business Type
-        input_7: formData.description, // Business Description
-        input_8: formData.revenue || "Not specified", // Revenue
-        input_9: formData.profit || "Not specified", // Profit Margin
-        input_10: formData.source || "Not specified", // Source
+        // Name fields
+        17.3: formData.firstName, // First Name
+        17.6: formData.lastName, // Last Name
+        // Other fields
+        18: formData.email, // Email
+        19: formData.phone, // Phone
+        26: formData.website || "", // Company/Website
+        5: formData.revenue || "", // Annual Revenue
+        8: formData.profit || "", // Profit
+        form_id: 13, // Explicitly set form ID to 13
       };
 
       console.log("Prepared submission data:", submissionData);
 
-      const result = await submitToGravityForms(submissionData);
+      // Call the updated submitToGravityForms function with the 'questionnaire' form type
+      const result = await submitToGravityForms(
+        submissionData,
+        "questionnaire"
+      );
       console.log("Form submission result:", result);
 
       if (result.success) {
