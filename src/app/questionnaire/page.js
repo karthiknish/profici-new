@@ -31,9 +31,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-
-// Debug mode - set to true to enable debugging features
-const DEBUG_MODE = process.env.NODE_ENV === "development";
+import { cn } from "@/lib/utils";
 
 export default function QuestionnairePage() {
   const router = useRouter();
@@ -42,7 +40,6 @@ export default function QuestionnairePage() {
   const [submitStatus, setSubmitStatus] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [formErrors, setFormErrors] = useState({});
-  const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -188,13 +185,6 @@ export default function QuestionnairePage() {
     try {
       console.log("Submitting form data:", formData);
 
-      // Log environment variables in development mode
-      if (DEBUG_MODE) {
-        console.log("Environment variables:", {
-          wordpressUrl: process.env.NEXT_PUBLIC_WORDPRESS_API_URL || "Not set",
-        });
-      }
-
       // Prepare form data for submission with the new field IDs
       const submissionData = {
         // Name fields
@@ -285,7 +275,7 @@ export default function QuestionnairePage() {
           )}
           <Button
             onClick={handleSubmit}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-destructive hover:bg-destructive/90"
           >
             <XCircle className="mr-2 h-4 w-4" />
             Try Again
@@ -307,188 +297,21 @@ export default function QuestionnairePage() {
     exit: { opacity: 0, x: -50, transition: { duration: 0.3 } },
   };
 
-  // Toggle debug info panel
-  const toggleDebugInfo = () => {
-    setShowDebugInfo((prev) => !prev);
-  };
-
-  // Debug info component
-  const DebugInfo = () => {
-    if (!DEBUG_MODE) return null;
-
-    const [apiTestResult, setApiTestResult] = useState(null);
-    const [isTestingApi, setIsTestingApi] = useState(false);
-
-    const testGravityFormsApi = async () => {
-      try {
-        setIsTestingApi(true);
-        setApiTestResult(null);
-
-        const response = await fetch("/api/test-gravity-forms");
-        const result = await response.json();
-
-        setApiTestResult(result);
-        console.log("API Test Result:", result);
-      } catch (error) {
-        console.error("Error testing API:", error);
-        setApiTestResult({
-          success: false,
-          message: "Error testing API",
-          error: error.message,
-        });
-      } finally {
-        setIsTestingApi(false);
-      }
-    };
-
-    return (
-      <div className="fixed bottom-4 right-4 z-50">
-        <button
-          onClick={toggleDebugInfo}
-          className="bg-gray-800 text-white p-2 rounded-full shadow-lg"
-          title="Toggle Debug Info"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-            <path d="M12 16v.01"></path>
-            <path d="M12 8v4"></path>
-          </svg>
-        </button>
-
-        {showDebugInfo && (
-          <div className="mt-2 p-4 bg-gray-800 text-white rounded-lg shadow-xl w-80 max-h-96 overflow-auto">
-            <h3 className="font-bold mb-2">Debug Information</h3>
-            <div className="text-xs">
-              <p className="mb-1">
-                <strong>WordPress URL:</strong>{" "}
-                {process.env.NEXT_PUBLIC_WORDPRESS_API_URL || "Not set"}
-              </p>
-              <p className="mb-1">
-                <strong>API Keys Set:</strong>{" "}
-                {process.env.NEXT_PUBLIC_GF_CONSUMER_KEY ? "Yes" : "No"}
-              </p>
-              <p className="mb-1">
-                <strong>Current Step:</strong> {step}
-              </p>
-              <p className="mb-1">
-                <strong>Submit Status:</strong>{" "}
-                {submitStatus || "Not submitted"}
-              </p>
-              <p className="mb-1">
-                <strong>Error Message:</strong> {errorMessage || "None"}
-              </p>
-
-              <div className="mt-3 mb-3">
-                <button
-                  onClick={testGravityFormsApi}
-                  disabled={isTestingApi}
-                  className={`bg-purple-600 text-white px-2 py-1 rounded text-xs w-full ${
-                    isTestingApi ? "opacity-50" : "hover:bg-purple-700"
-                  }`}
-                >
-                  {isTestingApi ? "Testing API..." : "Test Gravity Forms API"}
-                </button>
-
-                {apiTestResult && (
-                  <div
-                    className={`mt-2 p-2 rounded text-xs ${
-                      apiTestResult.success ? "bg-green-700" : "bg-red-700"
-                    }`}
-                  >
-                    <p className="font-bold">
-                      {apiTestResult.success
-                        ? "API Connection Successful"
-                        : "API Connection Failed"}
-                    </p>
-                    <p>{apiTestResult.message}</p>
-                    {apiTestResult.forms && (
-                      <div className="mt-1">
-                        <p className="font-bold">Available Forms:</p>
-                        <ul className="list-disc list-inside">
-                          {apiTestResult.forms.map((form) => (
-                            <li key={form.id}>
-                              ID: {form.id} - {form.title}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {apiTestResult.error && (
-                      <p className="mt-1 text-red-300">{apiTestResult.error}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="mb-1">
-                <strong>Form Data:</strong>
-                <pre className="mt-1 p-2 bg-gray-700 rounded text-green-300 text-xs overflow-auto">
-                  {JSON.stringify(formData, null, 2)}
-                </pre>
-              </div>
-              <div className="mb-1">
-                <strong>Form Errors:</strong>
-                <pre className="mt-1 p-2 bg-gray-700 rounded text-red-300 text-xs overflow-auto">
-                  {JSON.stringify(formErrors, null, 2)}
-                </pre>
-              </div>
-              <div className="mt-2">
-                <button
-                  onClick={() => console.log("Form Data:", formData)}
-                  className="bg-blue-600 text-white px-2 py-1 rounded text-xs mr-2"
-                >
-                  Log Data
-                </button>
-                <button
-                  onClick={() =>
-                    setFormData({
-                      firstName: "Test",
-                      lastName: "User",
-                      email: "test@example.com",
-                      phone: "1234567890",
-                      website: "https://example.com",
-                      businessType: "ecommerce",
-                      revenue: "1m-3m",
-                      profit: "10-15",
-                      description: "This is a test submission from debug mode.",
-                      source: "other",
-                    })
-                  }
-                  className="bg-green-600 text-white px-2 py-1 rounded text-xs"
-                >
-                  Fill Test Data
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 py-12">
+    <div className="min-h-screen  py-12">
       <div className="max-w-3xl mt-10 mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="bg-white rounded-2xl shadow-xl overflow-hidden"
+          className="bg-card rounded-2xl shadow-xl overflow-hidden border border-border"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           {/* Header with progress bar */}
-          <div className="bg-gradient-to-r from-gray-700 to-gray-900 p-8 text-white">
-            <h1 className="text-3xl font-bold">Business Growth Assessment</h1>
-            <p className="mt-2 opacity-90">
+          <div className="bg-gradient-to-r from-primary via-primary/80 to-primary/70 p-8 text-primary-foreground">
+            <h1 className="text-3xl font-bold tracking-tight">
+              Business Growth Assessment
+            </h1>
+            <p className="mt-2 opacity-90 text-primary-foreground/90">
               Complete this questionnaire to see if you qualify to become a
               Profici Growth Partner.
             </p>
@@ -496,11 +319,13 @@ export default function QuestionnairePage() {
             <div className="mt-6">
               <div className="flex justify-between mb-2 text-sm">
                 <span>Progress</span>
-                <span>{completionPercentage}% Complete</span>
+                <span className="font-medium">
+                  {completionPercentage}% Complete
+                </span>
               </div>
-              <div className="w-full bg-white/20 rounded-full h-2.5">
+              <div className="w-full bg-primary-foreground/20 rounded-full h-2.5 backdrop-blur-sm">
                 <motion.div
-                  className="bg-white h-2.5 rounded-full"
+                  className="bg-gradient-to-r from-secondary to-secondary/70 h-2.5 rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${completionPercentage}%` }}
                   transition={{ duration: 0.5 }}
@@ -515,24 +340,26 @@ export default function QuestionnairePage() {
               {[1, 2, 3].map((number) => (
                 <div key={number} className="flex flex-col items-center">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                    className={cn(
+                      "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500",
                       step >= number
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-200 text-gray-600"
-                    }`}
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                        : "bg-muted text-muted-foreground border border-border"
+                    )}
                   >
                     {step > number ? (
-                      <CheckCircle2 className="w-5 h-5" />
+                      <CheckCircle2 className="w-6 h-6" />
                     ) : (
-                      number
+                      <span className="font-semibold">{number}</span>
                     )}
                   </div>
                   <span
-                    className={`mt-2 text-sm ${
+                    className={cn(
+                      "mt-2 text-sm",
                       step >= number
-                        ? "text-gray-700 font-medium"
-                        : "text-gray-500"
-                    }`}
+                        ? "text-foreground font-medium"
+                        : "text-muted-foreground"
+                    )}
                   >
                     {number === 1
                       ? "Personal Info"
@@ -559,7 +386,7 @@ export default function QuestionnairePage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="firstName" className="flex items-center">
-                        <User className="w-4 h-4 mr-2 text-gray-600" />
+                        <User className="w-4 h-4 mr-2 text-primary" />
                         First Name
                       </Label>
                       <Input
@@ -567,18 +394,21 @@ export default function QuestionnairePage() {
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleInputChange}
-                        className={formErrors.firstName ? "border-red-500" : ""}
+                        className={cn(
+                          formErrors.firstName && "border-destructive",
+                          "focus:border-primary focus:ring-primary transition-all duration-300"
+                        )}
                         placeholder="John"
                       />
                       {formErrors.firstName && (
-                        <p className="text-red-500 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {formErrors.firstName}
                         </p>
                       )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="lastName" className="flex items-center">
-                        <User className="w-4 h-4 mr-2 text-gray-600" />
+                        <User className="w-4 h-4 mr-2 text-primary" />
                         Last Name
                       </Label>
                       <Input
@@ -586,11 +416,14 @@ export default function QuestionnairePage() {
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleInputChange}
-                        className={formErrors.lastName ? "border-red-500" : ""}
+                        className={cn(
+                          formErrors.lastName && "border-destructive",
+                          "focus:border-primary focus:ring-primary transition-all duration-300"
+                        )}
                         placeholder="Smith"
                       />
                       {formErrors.lastName && (
-                        <p className="text-red-500 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {formErrors.lastName}
                         </p>
                       )}
@@ -598,7 +431,7 @@ export default function QuestionnairePage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email" className="flex items-center">
-                      <Mail className="w-4 h-4 mr-2 text-gray-600" />
+                      <Mail className="w-4 h-4 mr-2 text-primary" />
                       Email
                     </Label>
                     <Input
@@ -607,18 +440,21 @@ export default function QuestionnairePage() {
                       type="email"
                       value={formData.email}
                       onChange={handleInputChange}
-                      className={formErrors.email ? "border-red-500" : ""}
+                      className={cn(
+                        formErrors.email && "border-destructive",
+                        "focus:border-primary focus:ring-primary transition-all duration-300"
+                      )}
                       placeholder="john.smith@example.com"
                     />
                     {formErrors.email && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-destructive text-sm mt-1">
                         {formErrors.email}
                       </p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="flex items-center">
-                      <Phone className="w-4 h-4 mr-2 text-gray-600" />
+                      <Phone className="w-4 h-4 mr-2 text-primary" />
                       Phone
                     </Label>
                     <Input
@@ -627,11 +463,14 @@ export default function QuestionnairePage() {
                       type="tel"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className={formErrors.phone ? "border-red-500" : ""}
+                      className={cn(
+                        formErrors.phone && "border-destructive",
+                        "focus:border-primary focus:ring-primary transition-all duration-300"
+                      )}
                       placeholder="+44 123 456 7890"
                     />
                     {formErrors.phone && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-destructive text-sm mt-1">
                         {formErrors.phone}
                       </p>
                     )}
@@ -650,7 +489,7 @@ export default function QuestionnairePage() {
                 >
                   <div className="space-y-2">
                     <Label htmlFor="website" className="flex items-center">
-                      <Globe className="w-4 h-4 mr-2 text-gray-600" />
+                      <Globe className="w-4 h-4 mr-2 text-primary" />
                       Company Website
                     </Label>
                     <Input
@@ -659,18 +498,21 @@ export default function QuestionnairePage() {
                       type="url"
                       value={formData.website}
                       onChange={handleInputChange}
-                      className={formErrors.website ? "border-red-500" : ""}
+                      className={cn(
+                        formErrors.website && "border-destructive",
+                        "focus:border-primary focus:ring-primary transition-all duration-300"
+                      )}
                       placeholder="https://example.com"
                     />
                     {formErrors.website && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-destructive text-sm mt-1">
                         {formErrors.website}
                       </p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="businessType" className="flex items-center">
-                      <Building className="w-4 h-4 mr-2 text-gray-600" />
+                      <Building className="w-4 h-4 mr-2 text-primary" />
                       What type of business do you have?
                     </Label>
                     <Select
@@ -680,9 +522,10 @@ export default function QuestionnairePage() {
                       }
                     >
                       <SelectTrigger
-                        className={
-                          formErrors.businessType ? "border-red-500" : ""
-                        }
+                        className={cn(
+                          formErrors.businessType && "border-destructive",
+                          "focus:border-primary focus:ring-primary transition-all duration-300"
+                        )}
                       >
                         <SelectValue placeholder="Select business type" />
                       </SelectTrigger>
@@ -701,14 +544,14 @@ export default function QuestionnairePage() {
                       </SelectContent>
                     </Select>
                     {formErrors.businessType && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-destructive text-sm mt-1">
                         {formErrors.businessType}
                       </p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="description" className="flex items-center">
-                      <MessageSquare className="w-4 h-4 mr-2 text-gray-600" />
+                      <MessageSquare className="w-4 h-4 mr-2 text-primary" />
                       Briefly describe your business
                     </Label>
                     <textarea
@@ -716,15 +559,15 @@ export default function QuestionnairePage() {
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
-                      className={`w-full min-h-[120px] rounded-md border ${
-                        formErrors.description
-                          ? "border-red-500"
-                          : "border-input"
-                      } bg-background px-3 py-2 text-sm`}
+                      className={cn(
+                        "w-full min-h-[120px] rounded-md border bg-background px-3 py-2 text-sm",
+                        formErrors.description && "border-destructive",
+                        "focus:border-primary focus:ring-primary transition-all duration-300"
+                      )}
                       placeholder="Tell us about your business, products/services, and target market..."
                     />
                     {formErrors.description && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-destructive text-sm mt-1">
                         {formErrors.description}
                       </p>
                     )}
@@ -743,7 +586,7 @@ export default function QuestionnairePage() {
                 >
                   <div className="space-y-2">
                     <Label htmlFor="revenue" className="flex items-center">
-                      <DollarSign className="w-4 h-4 mr-2 text-gray-600" />
+                      <DollarSign className="w-4 h-4 mr-2 text-primary" />
                       Annual Revenue
                     </Label>
                     <Select
@@ -753,7 +596,10 @@ export default function QuestionnairePage() {
                       }
                     >
                       <SelectTrigger
-                        className={formErrors.revenue ? "border-red-500" : ""}
+                        className={cn(
+                          formErrors.revenue && "border-destructive",
+                          "focus:border-primary focus:ring-primary transition-all duration-300"
+                        )}
                       >
                         <SelectValue placeholder="Select annual revenue" />
                       </SelectTrigger>
@@ -769,14 +615,14 @@ export default function QuestionnairePage() {
                       </SelectContent>
                     </Select>
                     {formErrors.revenue && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p className="text-destructive text-sm mt-1">
                         {formErrors.revenue}
                       </p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="profit" className="flex items-center">
-                      <Percent className="w-4 h-4 mr-2 text-gray-600" />
+                      <Percent className="w-4 h-4 mr-2 text-primary" />
                       Profit in Last 12 Months
                     </Label>
                     <Select
@@ -786,7 +632,10 @@ export default function QuestionnairePage() {
                       }
                     >
                       <SelectTrigger
-                        className={formErrors.profit ? "border-red-500" : ""}
+                        className={cn(
+                          formErrors.profit && "border-destructive",
+                          "focus:border-primary focus:ring-primary transition-all duration-300"
+                        )}
                       >
                         <SelectValue placeholder="Select profit margin" />
                       </SelectTrigger>
@@ -975,7 +824,6 @@ export default function QuestionnairePage() {
       </div>
 
       {/* Add the debug component at the end */}
-      <DebugInfo />
     </div>
   );
 }
